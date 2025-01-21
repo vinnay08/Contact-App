@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:contact_app/Screens/contact_main_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:contact_app/Database/dbhelper.dart';
 import 'package:contact_app/Models/contact_model.dart';
 
@@ -16,6 +19,7 @@ class EditContactPage extends StatefulWidget {
 class _EditContactPageState extends State<EditContactPage> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> _formData = {};
+  String? _profileImagePath;
 
   @override
   void initState() {
@@ -28,6 +32,17 @@ class _EditContactPageState extends State<EditContactPage> {
     _formData['State'] = widget.contact.state;
     _formData['City'] = widget.contact.city;
     _formData['Street'] = widget.contact.street;
+    _profileImagePath = widget.contact.dppath;
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImagePath = pickedFile.path; // Update profile image path
+      });
+    }
   }
 
   void _saveContact() async {
@@ -45,6 +60,7 @@ class _EditContactPageState extends State<EditContactPage> {
         state: _formData['State'] ?? '',
         city: _formData['City'] ?? '',
         street: _formData['Street'] ?? '',
+        dppath: _profileImagePath ?? '',
       );
 
       // Save the updated contact to the database
@@ -56,11 +72,10 @@ class _EditContactPageState extends State<EditContactPage> {
         const SnackBar(content: Text("Contact updated successfully!")),
       );
 
-      // Call the onUpdate callback to refresh the main screen
-      widget.onUpdate(); // Trigger the refresh
-
-      // Navigate back
-      Navigator.pop(context);
+      // Return to the previous screen with the updated contact
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => ContactMainScreen()),
+          (Route<dynamic> route) => false);
     }
   }
 
@@ -69,10 +84,10 @@ class _EditContactPageState extends State<EditContactPage> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: const Text("Edit Contact")),
+        title: const Text("Edit Contact"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save_outlined),
+            icon: const Icon(Icons.check),
             onPressed: _saveContact,
           ),
         ],
@@ -85,18 +100,27 @@ class _EditContactPageState extends State<EditContactPage> {
             child: Column(
               children: [
                 const SizedBox(height: 7),
-                Center(
+                GestureDetector(
+                  onTap: _pickImage, // Allow user to select a new image
                   child: Material(
                     elevation: 5,
                     borderRadius: BorderRadius.circular(60),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(60),
-                      child: Image.asset(
-                        "assets/images/p1.png",
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
+                      child: _profileImagePath != null &&
+                              _profileImagePath!.isNotEmpty
+                          ? Image.file(
+                              File(_profileImagePath!),
+                              height: 120,
+                              width: 120,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              "assets/images/p1.png",
+                              height: 120,
+                              width: 120,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                 ),
@@ -127,9 +151,7 @@ class _EditContactPageState extends State<EditContactPage> {
               padding: const EdgeInsets.only(bottom: 15.0),
               child: Row(
                 children: [
-                  if (field['icon'] == null) ...[
-                    const SizedBox(width: 35),
-                  ],
+                  if (field['icon'] == null) ...[const SizedBox(width: 35)],
                   if (field['icon'] != null) ...[
                     Icon(field['icon'] as IconData, color: Colors.black),
                     const SizedBox(width: 10),

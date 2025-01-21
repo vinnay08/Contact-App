@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:contact_app/Database/dbhelper.dart';
 import 'package:contact_app/Models/contact_model.dart';
 import 'package:contact_app/Screens/contact_edit_screen.dart';
@@ -86,12 +88,21 @@ class _ContactDetailsPageState extends State<ContactDetailsPage> {
                   borderRadius: BorderRadius.circular(60),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(60),
-                    child: Image.asset(
-                      "assets/images/p1.png", // Placeholder image
-                      height: 120,
-                      width: 120,
-                      fit: BoxFit.cover,
-                    ),
+                    child: widget.contact.dppath != null &&
+                            widget.contact.dppath!.isNotEmpty
+                        ? Image.file(
+                            File(widget
+                                .contact.dppath!), // Load the image from file
+                            height: 120,
+                            width: 120,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            "assets/images/p1.png", // Fallback image
+                            height: 120,
+                            width: 120,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
               ),

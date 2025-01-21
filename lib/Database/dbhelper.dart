@@ -19,6 +19,7 @@ class Dbhelper {
     final dbPath = await getDatabasesPath();
     return openDatabase(
       path.join(dbPath, 'contacts.db'),
+      version: 2, // Incremented the version to handle schema upgrades
       onCreate: (db, version) {
         return db.execute('''
           CREATE TABLE contacts (
@@ -30,11 +31,16 @@ class Dbhelper {
             company TEXT,
             state TEXT,
             city TEXT,
-            street TEXT
+            street TEXT,
+            dppath TEXT
           )
         ''');
       },
-      version: 1,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE contacts ADD COLUMN dppath TEXT');
+        }
+      },
     );
   }
 

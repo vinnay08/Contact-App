@@ -1,5 +1,8 @@
-import 'package:contact_app/Database/dbhelper.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../Database/dbhelper.dart';
 import '../Models/contact_model.dart';
 
 class AddContact extends StatefulWidget {
@@ -12,12 +15,31 @@ class AddContact extends StatefulWidget {
 class _AddContactState extends State<AddContact> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> _formData = {};
+  File? _selectedImage;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   void _saveContact() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Create a Contact object
+      // Check if an image was selected
+      // if (_selectedImage == null) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text("Please select a profile picture")),
+      //   );
+      //   return;
+      // }
+
       final newContact = Contact(
         firstName: _formData['First Name'] ?? '',
         lastName: _formData['Last Name'] ?? '',
@@ -27,6 +49,7 @@ class _AddContactState extends State<AddContact> {
         state: _formData['State'] ?? '',
         city: _formData['City'] ?? '',
         street: _formData['Street'] ?? '',
+        dppath: _selectedImage?.path ?? '',
       );
 
       // Save the contact to the database
@@ -38,11 +61,10 @@ class _AddContactState extends State<AddContact> {
         const SnackBar(content: Text("Contact saved successfully!")),
       );
 
-      // Navigate back
-      Navigator.pop(context);
+      // Navigate back with the new contact
+      Navigator.pop(context, newContact);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -55,7 +77,7 @@ class _AddContactState extends State<AddContact> {
             child: const Padding(
               padding: EdgeInsets.all(8.0),
               child: Icon(
-                Icons.save_outlined,
+                Icons.check,
                 size: 29,
               ),
             ),
@@ -71,16 +93,26 @@ class _AddContactState extends State<AddContact> {
               children: [
                 const SizedBox(height: 7),
                 Center(
-                  child: Material(
-                    elevation: 5,
-                    borderRadius: BorderRadius.circular(60),
-                    child: ClipRRect(
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: Material(
+                      elevation: 5,
                       borderRadius: BorderRadius.circular(60),
-                      child: Image.asset(
-                        "assets/images/p1.png",
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(60),
+                        child: _selectedImage != null
+                            ? Image.file(
+                                _selectedImage!,
+                                height: 120,
+                                width: 120,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.asset(
+                                "assets/images/p1.png",
+                                height: 120,
+                                width: 120,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                   ),
@@ -131,7 +163,6 @@ class _AddContactState extends State<AddContact> {
 
   Container fieldContent(Size size, String text) {
     return Container(
-      // width: size.width * 0.84,
       height: size.height * 0.07,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black),
@@ -144,7 +175,6 @@ class _AddContactState extends State<AddContact> {
             _formData[text] = value;
           },
           validator: (value) {
-            // Validation for phone number
             if (text == "Phone Number") {
               if (value == null || value.isEmpty) {
                 return "Phone number is required";

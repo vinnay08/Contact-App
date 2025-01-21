@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:contact_app/Screens/add_contact.dart';
 import '../Database/dbhelper.dart';
@@ -106,9 +108,13 @@ class _ContactMainScreenState extends State<ContactMainScreen> {
                             ? contact.phone
                             : "${contact.firstName} ${contact.lastName}";
                         return ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.grey,
-                            child: Icon(Icons.person, color: Colors.white),
+                          leading: CircleAvatar(
+                            backgroundImage: contact.dppath.isNotEmpty
+                                ? FileImage(File(
+                                    contact.dppath)) // Load image from dppath
+                                : const AssetImage('assets/images/p1.png')
+                                    as ImageProvider, // Default placeholder image
+                            backgroundColor: Colors.grey[200],
                           ),
                           title: Text(displayName),
                           subtitle: Text(contact.phone),
@@ -119,8 +125,10 @@ class _ContactMainScreenState extends State<ContactMainScreen> {
                               MaterialPageRoute(
                                 builder: (context) => ContactDetailsPage(
                                   contact: contact,
-                                  onUpdate: _loadContacts, // Refresh after update
-                                  onDelete: _loadContacts, // Refresh after delete
+                                  onUpdate:
+                                      _loadContacts, // Refresh after update
+                                  onDelete:
+                                      _loadContacts, // Refresh after delete
                                 ),
                               ),
                             );

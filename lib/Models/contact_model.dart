@@ -8,6 +8,7 @@ class Contact {
   String state;
   String city;
   String street;
+  String dppath;
 
   Contact({
     this.id,
@@ -19,6 +20,7 @@ class Contact {
     this.state = '',
     this.city = '',
     this.street = '',
+    this.dppath = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +34,7 @@ class Contact {
       'state': state,
       'city': city,
       'street': street,
+      'dppath': dppath,
     };
   }
 
@@ -46,6 +49,7 @@ class Contact {
       state: map['state'],
       city: map['city'],
       street: map['street'],
+      dppath: map['dppath'],
     );
   }
 }
